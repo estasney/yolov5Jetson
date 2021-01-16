@@ -85,6 +85,7 @@ setup(
         python_requires=REQUIRES_PYTHON,
         url=URL,
         packages=find_packages(exclude=('tests',)),
+        include_package_data=True,
         install_requires=REQUIRED,
         license='GPL3',
         classifiers=[
