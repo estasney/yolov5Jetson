@@ -21,7 +21,8 @@ VERSION = '0.0.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'Cython', 'matplotlib', 'numpy', 'pillow', 'PyYAML', 'scipy', 'torch', 'torchvision', 'tensorboard'
+    'Cython', 'matplotlib', 'numpy', 'pillow', 'PyYAML', 'scipy', 'torch', 'torchvision', 'tensorboard',
+    'tqdm'
     ]
 
 here = os.path.abspath(os.path.dirname(__file__))
