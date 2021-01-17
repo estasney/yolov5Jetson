@@ -1,3 +1,4 @@
+import logging
 import os
 
 import click
@@ -24,6 +25,8 @@ def train(dataset, log_dir, epochs, weights, device, params):
     """Train a model"""
     dataset = os.path.expanduser(click.format_filename(dataset))
     log_dir = os.path.expanduser(click.format_filename(log_dir))
+
+    logging.basicConfig(format="%(message)s", level=logging.INFO)
 
     from yolov5.models.slim import SlimModelTrainer as Trainer
 
