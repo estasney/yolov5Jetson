@@ -9,6 +9,7 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as lr_scheduler
 from typing import Union, Dict
 from tqdm.auto import tqdm
+import logging
 
 import yaml
 
@@ -18,6 +19,8 @@ from yolov5.utils.torch_utils import intersect_dicts, ModelEMA
 from yolov5 import PretrainedWeights, test
 from yolov5.config import Params
 from yolov5.models.yolo import Model
+
+logger = logging.getLogger(__name__)
 
 
 class OptShim:
@@ -46,6 +49,7 @@ class SlimModelTrainer:
 
         """
         self.device = torch.device(device)
+        self.cuda = self.device.type == 'cuda'
         self.weights_path = weights
         self.data_path = dataset
         self.accumulate = 32
@@ -204,9 +208,10 @@ class SlimModelTrainer:
 
         results = (0, 0, 0, 0, 0, 0, 0)  # P, R, mAP@.5, mAP@.5-.95, val_loss(box, obj, cls)
         scheduler.last_epoch = self.start_epoch - 1  # do not move
-        scaler = amp.GradScaler(enabled=True)
+        scaler = amp.GradScaler(enabled=self.cuda)
 
         s = ''
+        logger.info(('\n' + '%10s' * 8) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'total', 'targets', 'img_size'))
 
         for epoch in range(self.start_epoch, epochs):
             self.model.train()
@@ -229,7 +234,7 @@ class SlimModelTrainer:
                             x['momentum'] = np.interp(ni, xi, [self.warmup_momentum, self.momentum])
 
                 # Forward
-                with amp.autocast(enabled=True):
+                with amp.autocast(enabled=self.cuda):
                     pred = self.model(imgs)  # forward
 
                     # loss scaled by batch_size
