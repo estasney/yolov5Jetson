@@ -172,6 +172,7 @@ class SlimModelTrainer:
         """
 
         self.load_model()
+        log_dir = os.path.expanduser(log_dir)
         os.makedirs(log_dir, exist_ok=True)
         results_file = os.path.join(log_dir, 'results.txt')
 

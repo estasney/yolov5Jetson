@@ -151,10 +151,12 @@ def test(data,
                 box = xyxy2xywh(box)  # xywh
                 box[:, :2] -= box[:, 2:] / 2  # xy center to top-left corner
                 for p, b in zip(pred.tolist(), box.tolist()):
-                    jdict.append({'image_id': int(image_id) if image_id.isnumeric() else image_id,
-                                  'category_id': coco91class[int(p[5])],
-                                  'bbox': [round(x, 3) for x in b],
-                                  'score': round(p[4], 5)})
+                    jdict.append({
+                                     'image_id':    int(image_id) if image_id.isnumeric() else image_id,
+                                     'category_id': coco91class[int(p[5])],
+                                     'bbox':        [round(x, 3) for x in b],
+                                     'score':       round(p[4], 5)
+                                     })
 
             # Assign all predictions as incorrect
             correct = torch.zeros(pred.shape[0], niou, dtype=torch.bool, device=device)
@@ -190,7 +192,7 @@ def test(data,
             stats.append((correct.cpu(), pred[:, 4].cpu(), pred[:, 5].cpu(), tcls))
 
         # Plot images
-        if plots and batch_i < 1:
+        if plots and save_dir and batch_i < 1:
             f = save_dir / f'test_batch{batch_i}_gt.jpg'  # filename
             plot_images(img, targets, paths, str(f), names)  # ground truth
             f = save_dir / f'test_batch{batch_i}_pred.jpg'
@@ -199,7 +201,8 @@ def test(data,
     # Compute statistics
     stats = [np.concatenate(x, 0) for x in zip(*stats)]  # to numpy
     if len(stats) and stats[0].any():
-        p, r, ap, f1, ap_class = ap_per_class(*stats, plot=plots, fname=save_dir / 'precision-recall_curve.png')
+        p, r, ap, f1, ap_class = ap_per_class(*stats, plot=plots,
+                                              fname=os.path.join(save_dir, 'precision-recall_curve.png'))
         p, r, ap50, ap = p[:, 0], r[:, 0], ap[:, 0], ap.mean(1)  # [P, R, AP@0.5, AP@0.5:0.95]
         mp, mr, map50, map = p.mean(), r.mean(), ap50.mean(), ap.mean()
         nt = np.bincount(stats[3].astype(np.int64), minlength=nc)  # number of targets per class

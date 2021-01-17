@@ -22,7 +22,7 @@ VERSION = '0.0.1'
 # What packages are required for this module to be executed?
 REQUIRED = [
     'Cython', 'matplotlib', 'numpy', 'pillow', 'PyYAML', 'scipy', 'torch', 'torchvision', 'tensorboard',
-    'tqdm'
+    'tqdm', 'Click'
     ]
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -92,6 +92,10 @@ setup(
                               'yolov5/config/finetune.yaml',
                               'yolov5/config/scratch.yaml'])],
         install_requires=REQUIRED,
+        entry_points='''
+        [console_scripts]
+        yolov5=yolov5.cli:cli
+        ''',
         license='GPL3',
         classifiers=[
             # Trove classifiers
