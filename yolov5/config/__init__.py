@@ -17,9 +17,9 @@ class LazyLoader:
 
 
 class ModelConfig:
-    SMALL = LazyLoader(pkg_resources.resource_filename('config', 'config/yolov5s.yaml'))
+    SMALL = LazyLoader(pkg_resources.resource_filename('yolov5', 'config/yolov5s.yaml'))
 
 
 class Params:
-    SCRATCH = LazyLoader(pkg_resources.resource_filename('config', 'config/scratch.yaml'))
-    FINETUNE = LazyLoader(pkg_resources.resource_filename('config', 'config/finetune.yaml'))
+    SCRATCH = LazyLoader(pkg_resources.resource_filename('yolov5', 'config/scratch.yaml'))
+    FINETUNE = LazyLoader(pkg_resources.resource_filename('yolov5', 'config/finetune.yaml'))
