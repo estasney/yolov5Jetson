@@ -7,7 +7,8 @@ import torch.nn as nn
 from PIL import Image, ImageDraw
 
 from yolov5.utils.datasets import letterbox
-from yolov5.utils.general import non_max_suppression, make_divisible, scale_coords, xyxy2xywh, color_list
+from yolov5.utils.general import (non_max_suppression, make_divisible, scale_coords, xyxy2xywh, color_list,
+                                  non_max_suppression_torch_ops)
 
 
 def autopad(k, p=None):  # kernel, padding
@@ -163,8 +164,8 @@ class autoShape(nn.Module):
         # Inference
         with torch.no_grad():
             y = self.model(x, augment, profile)[0]
-
-        y = non_max_suppression(y, conf_thres=self.conf, iou_thres=self.iou, classes=self.classes)
+        # y = non_max_suppression(y, conf_thres=self.conf, iou_thres=self.iou, classes=self.classes)
+        y = non_max_suppression_torch_ops(y, conf_thres=self.conf, iou_thres=self.iou, classes=self.classes)
 
 
         # Post-process
