@@ -20,6 +20,10 @@ from yolov5.config import Params
 from yolov5.models.yolo import Model
 
 
+class OptShim:
+    single_cls = False
+
+
 class SlimModelTrainer:
     NBS = 64
     BATCH_SIZE = 2
@@ -163,6 +167,7 @@ class SlimModelTrainer:
         -------
         """
 
+        self.load_model()
         os.makedirs(log_dir, exist_ok=True)
         results_file = os.path.join(log_dir, 'results.txt')
 
@@ -179,12 +184,12 @@ class SlimModelTrainer:
         ema = ModelEMA(self.model)
 
         dataloader, dataset = create_dataloader(self.train_path, imgsz, batch_size, gs,
-                                                hyp=self.params, augment=True, opt=dict(single_cls=False))
+                                                hyp=self.params, augment=True, opt=OptShim)
         n_batches = len(dataloader)
 
         ema.updates = self.start_epoch * n_batches // self.accumulate
         testloader = create_dataloader(self.val_path, imgsz_test, batch_size, gs,
-                                       hyp=self.params, augment=False, rect=True, opt=dict(single_cls=False))[0]
+                                       hyp=self.params, augment=False, rect=True, opt=OptShim)[0]
 
         self.cls = self.cls * (self.n_classes / 80)
         self.model.nc = self.n_classes
