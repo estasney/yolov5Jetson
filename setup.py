@@ -87,6 +87,10 @@ setup(
         url=URL,
         packages=find_packages(exclude=('tests',)),
         include_package_data=True,
+        data_files=[('weights', ['yolov5/weights/yolov5s.pt']),
+                    ('config', ['yolov5/config/yolov5s.pt',
+                                'yolov5/config/finetune.yaml',
+                                'yolov5/config/scratch.yaml'])],
         install_requires=REQUIRED,
         license='GPL3',
         classifiers=[

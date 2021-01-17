@@ -45,6 +45,9 @@ gcp_test*.sh
 *.mat
 !targets*.mat
 
+# Packaged PretrainedWeights (!ignore) -------------------------------------------------------------------------------------------
+!yolov5/weights/yolov5s.pt
+
 # Neural Network weights -----------------------------------------------------------------------------------------------
 *.weights
 *.pt
