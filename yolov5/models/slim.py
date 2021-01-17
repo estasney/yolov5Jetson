@@ -12,13 +12,12 @@ from tqdm.auto import tqdm
 
 import yaml
 
-from utils.datasets import create_dataloader
-from utils.general import check_img_size, labels_to_class_weights, compute_loss, fitness
-from utils.torch_utils import intersect_dicts, ModelEMA
-from yolov5 import PretrainedWeights
+from yolov5.utils.datasets import create_dataloader
+from yolov5.utils.general import check_img_size, labels_to_class_weights, compute_loss, fitness
+from yolov5.utils.torch_utils import intersect_dicts, ModelEMA
+from yolov5 import PretrainedWeights, test
 from yolov5.config import Params
 from yolov5.models.yolo import Model
-from yolov5 import test
 
 
 class SlimModelTrainer:
