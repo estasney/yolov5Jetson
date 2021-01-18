@@ -12,7 +12,7 @@ from torch.optim import lr_scheduler as lr_scheduler
 from tqdm.auto import tqdm
 
 import yolov5.test
-from yolov5.models.slim import SlimModel
+from yolov5.models.slim.base import SlimModel
 from yolov5.models.yolo import Model
 from yolov5.utils.datasets import create_dataloader
 from yolov5.utils.general import check_img_size, labels_to_class_weights, compute_loss, fitness

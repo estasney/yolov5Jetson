@@ -8,7 +8,7 @@ from yolov5.utils.datasets import LoadImages
 from yolov5.utils.general import check_img_size, non_max_suppression_torch_ops, scale_coords, xyxy2xywh
 from yolov5.utils.torch_utils import intersect_dicts
 from yolov5 import PretrainedWeights
-from yolov5.models.slim import SlimModel
+from yolov5.models.slim.base import SlimModel
 from yolov5.models.yolo import Model
 
 
