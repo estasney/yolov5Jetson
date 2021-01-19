@@ -2,7 +2,7 @@ from typing import Union, Dict
 
 import torch
 
-from config import Params
+from yolov5.config import Params
 from yolov5 import PretrainedWeights
 
 
