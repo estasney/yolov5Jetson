@@ -1,11 +1,11 @@
 import math
-from typing import Dict, Union, List, Tuple
+from typing import Dict, Union, List
 import numpy as np
 import torch
 
-from models.common import Detections
-from utils.datasets import letterbox
-from yolov5.utils.general import check_img_size, make_divisible, non_max_suppression_torch_ops, scale_coords, xyxy2xywh
+
+from yolov5.utils.datasets import letterbox
+from yolov5.utils.general import non_max_suppression_torch_ops, scale_coords, xyxy2xywh
 from yolov5 import PretrainedWeights
 from yolov5.models.slim.detect import SlimModelDetector
 from functools import lru_cache
