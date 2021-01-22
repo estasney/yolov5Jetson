@@ -14,7 +14,7 @@ from yolov5.models.experimental import attempt_load
 from yolov5.utils.datasets import create_dataloader
 from yolov5.utils.general import (
     coco80_to_coco91_class, check_dataset, check_file, check_img_size, compute_loss, non_max_suppression, scale_coords,
-    xyxy2xywh, clip_coords, plot_images, xywh2xyxy, box_iou, output_to_target, ap_per_class, set_logging)
+    xyxy2xywh, clip_coords, xywh2xyxy, box_iou, set_logging, ap_per_class)
 from yolov5.utils.torch_utils import select_device, time_synchronized
 
 
@@ -191,18 +191,10 @@ def test(data,
             # Append statistics (correct, conf, pcls, tcls)
             stats.append((correct.cpu(), pred[:, 4].cpu(), pred[:, 5].cpu(), tcls))
 
-        # Plot images
-        if plots and save_dir and batch_i < 1:
-            f = save_dir / f'test_batch{batch_i}_gt.jpg'  # filename
-            plot_images(img, targets, paths, str(f), names)  # ground truth
-            f = save_dir / f'test_batch{batch_i}_pred.jpg'
-            plot_images(img, output_to_target(output, width, height), paths, str(f), names)  # predictions
-
     # Compute statistics
     stats = [np.concatenate(x, 0) for x in zip(*stats)]  # to numpy
     if len(stats) and stats[0].any():
-        p, r, ap, f1, ap_class = ap_per_class(*stats, plot=plots,
-                                              fname=os.path.join(save_dir, 'precision-recall_curve.png'))
+        p, r, ap, f1, ap_class = ap_per_class(*stats)
         p, r, ap50, ap = p[:, 0], r[:, 0], ap[:, 0], ap.mean(1)  # [P, R, AP@0.5, AP@0.5:0.95]
         mp, mr, map50, map = p.mean(), r.mean(), ap50.mean(), ap.mean()
         nt = np.bincount(stats[3].astype(np.int64), minlength=nc)  # number of targets per class
@@ -230,22 +222,6 @@ def test(data,
         print('\nCOCO mAP with pycocotools... saving %s...' % file)
         with open(file, 'w') as f:
             json.dump(jdict, f)
-
-        try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
-            from pycocotools.coco import COCO
-            from pycocotools.cocoeval import COCOeval
-
-            imgIds = [int(Path(x).stem) for x in dataloader.dataset.img_files]
-            cocoGt = COCO(glob.glob('../coco/annotations/instances_val*.json')[0])  # initialize COCO ground truth api
-            cocoDt = cocoGt.loadRes(str(file))  # initialize COCO pred api
-            cocoEval = COCOeval(cocoGt, cocoDt, 'bbox')
-            cocoEval.params.imgIds = imgIds  # image IDs to evaluate
-            cocoEval.evaluate()
-            cocoEval.accumulate()
-            cocoEval.summarize()
-            map, map50 = cocoEval.stats[:2]  # update results (mAP@0.5:0.95, mAP@0.5)
-        except Exception as e:
-            print('ERROR: pycocotools unable to run: %s' % e)
 
     # Return results
     model.float()  # for training

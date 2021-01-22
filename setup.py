@@ -21,7 +21,7 @@ VERSION = '0.0.1'
 
 # What packages are required for this module to be executed?
 REQUIRED = [
-    'Cython', 'matplotlib', 'numpy', 'pillow', 'PyYAML', 'scipy', 'torch', 'torchvision', 'tensorboard',
+    'Cython', 'numpy', 'pillow', 'PyYAML', 'scipy', 'torch', 'torchvision',
     'tqdm', 'Click'
     ]
 
