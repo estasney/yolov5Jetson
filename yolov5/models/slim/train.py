@@ -167,6 +167,9 @@ class SlimModelTrainer(SlimModel):
         scheduler.last_epoch = self.start_epoch - 1  # do not move
         scaler = amp.GradScaler(enabled=self.cuda)
 
+        logger.info("Start Epoch : {}".format(self.start_epoch))
+        logger.info("Running {} Epochs".format(epochs - self.start_epoch))
+
         s = ''
         logger.info(('\n' + '%10s' * 8) % ('Epoch', 'gpu_mem', 'box', 'obj', 'cls', 'total', 'targets', 'img_size'))
 
