@@ -5,11 +5,16 @@ import torch
 from yolov5.config import Params
 from yolov5 import PretrainedWeights
 
+import warnings
+
 
 class SlimModel:
-    def __init__(self,  params: Union[Dict, str] = 'scratch',
+    def __init__(self, params: Union[Dict, str] = 'scratch',
                  weights: str = PretrainedWeights.SMALL,
                  device: str = 'cuda:0'):
+        if torch.cuda.device_count() == 0:
+            device = 'cpu'
+            warnings.warn("Device parameters indicated cuda but no cuda available devices were found")
         self.device = torch.device(device)
         self.cuda = self.device.type == 'cuda'
         self.weights_path = weights
