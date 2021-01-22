@@ -1,25 +1,20 @@
-import argparse
 import logging
-import os
-import sys
+
 from copy import deepcopy
 from pathlib import Path
 
 import math
-
-import yaml
-
-sys.path.append('./')  # to run '$ python *.py' files in subdirectories
-logger = logging.getLogger(__name__)
-
 import torch
 import torch.nn as nn
 
 from yolov5.models.common import Conv, Bottleneck, SPP, DWConv, Focus, BottleneckCSP, Concat, NMS, autoShape
 from yolov5.models.experimental import MixConv2d, CrossConv, C3
-from yolov5.utils.general import check_anchor_order, make_divisible, check_file, set_logging
+from yolov5.utils.general import check_anchor_order, make_divisible
 from yolov5.utils.torch_utils import (time_synchronized, fuse_conv_and_bn, model_info, scale_img, initialize_weights,
-                                      select_device, copy_attr)
+                                      copy_attr)
+from yolov5.config import ModelConfig
+
+logger = logging.getLogger(__name__)
 
 
 class Detect(nn.Module):
@@ -65,7 +60,7 @@ class Detect(nn.Module):
 
 
 class Model(nn.Module):
-    def __init__(self, cfg='yolov5s.yaml', ch=3, nc=None):  # model, input channels, number of classes
+    def __init__(self, cfg=ModelConfig.SMALL, ch=3, nc=None):  # model, input channels, number of classes
         super(Model, self).__init__()
         if isinstance(cfg, dict):
             self.yaml = cfg  # model dict
@@ -128,7 +123,7 @@ class Model(nn.Module):
                 try:
                     import thop
                     o = thop.profile(m, inputs=(x,), verbose=False)[0] / 1E9 * 2  # FLOPS
-                except:
+                except ModuleNotFoundError:
                     o = 0
                 t = time_synchronized()
                 for _ in range(10):
@@ -259,28 +254,3 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
         layers.append(m_)
         ch.append(c2)
     return nn.Sequential(*layers), sorted(save)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--cfg', type=str, default='yolov5s.yaml', help='model.yaml')
-    parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
-    opt = parser.parse_args()
-    opt.cfg = check_file(opt.cfg)  # check file
-    set_logging()
-    device = select_device(opt.device)
-
-    # Create model
-    model = Model(opt.cfg).to(device)
-    model.train()
-
-    # Profile
-    # img = torch.rand(8 if torch.cuda.is_available() else 1, 3, 640, 640).to(device)
-    # y = model(img, profile=True)
-
-    # Tensorboard
-    # from torch.utils.tensorboard import SummaryWriter
-    # tb_writer = SummaryWriter()
-    # print("Run 'tensorboard --logdir=models/runs' to view tensorboard at http://localhost:6006/")
-    # tb_writer.add_graph(model.model, img)  # add model to tensorboard
-    # tb_writer.add_image('test', img[0], dataformats='CWH')  # add model to tensorboard

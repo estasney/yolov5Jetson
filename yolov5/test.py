@@ -33,7 +33,7 @@ def test(data,
          save_dir=Path(''),  # for saving images
          save_txt=False,  # for auto-labelling
          save_conf=False,
-         plots=True):
+         plots=False):
     # Initialize/load model and set device
     training = model is not None
     if training:  # called by train.py

@@ -18,6 +18,9 @@ class LazyLoader:
 
 class ModelConfig:
     SMALL = LazyLoader(pkg_resources.resource_filename('yolov5', 'config/yolov5s.yaml'))
+    MEDIUM = LazyLoader(pkg_resources.resource_filename('yolov5', 'config/yolov5m.yaml'))
+    LARGE = LazyLoader(pkg_resources.resource_filename('yolov5', 'config/yolov5l.yaml'))
+    XL = LazyLoader(pkg_resources.resource_filename('yolov5', 'config/yolov5x.yaml'))
 
 
 class Params:

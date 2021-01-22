@@ -11,7 +11,7 @@ import math
 import numpy as np
 import torch
 from PIL import Image, ExifTags
-from torch.utils.data import Dataset
+from torch.utils.data.dataset import Dataset
 from tqdm import tqdm
 
 from yolov5.utils.general import xyxy2xywh, xywh2xyxy, torch_distributed_zero_first
