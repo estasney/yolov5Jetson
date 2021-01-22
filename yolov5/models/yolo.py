@@ -198,23 +198,6 @@ class Model(nn.Module):
         model_info(self, verbose)
 
 
-class PretrainedModel(Model):
-
-    def __init__(self, weights, channels=3, config='yolov5s'):
-        config_path = os.path.join(os.path.dirname(__file__), config + ".yaml")
-        with open(config_path, "r") as fp:
-            config_data = yaml.load(fp, Loader=yaml.FullLoader)
-        checkpoint = torch.load(weights, map_location=torch.device('cpu'))
-        super().__init__(cfg=config_data, ch=channels, nc=len(checkpoint['model'].names))
-        state_dict = checkpoint['model'].float().state_dict()  # to FP32
-        state_dict = {k: v for k, v in state_dict.items() if self.state_dict()[k].shape == v.shape}  # filter
-        self.load_state_dict(state_dict, strict=False)
-        self.names = checkpoint['model'].names
-
-    def setup_detect(self):
-        return self.fuse().eval().autoshape()
-
-
 def parse_model(d, ch):  # model_dict, input_channels(3)
     logger.info('\n%3s%18s%3s%10s  %-40s%-30s' % ('', 'from', 'n', 'params', 'module', 'arguments'))
     anchors, nc, gd, gw = d['anchors'], d['nc'], d['depth_multiple'], d['width_multiple']
