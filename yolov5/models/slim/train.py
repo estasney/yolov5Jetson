@@ -66,8 +66,16 @@ class SlimModelTrainer(SlimModel):
     def load_dataset_meta(self, dataset):
         with open(dataset, "r") as fp:
             data_dict = yaml.load(fp, Loader=yaml.FullLoader)
-        self.train_path = data_dict['train']
-        self.val_path = data_dict['val']
+
+        if os.path.isabs(data_dict['train']):
+            self.train_path = data_dict['train']
+        else:
+            self.train_path = os.path.abspath(os.path.join(os.path.dirname(self.data_path), data_dict['train']))
+        if os.path.isabs(data_dict['val']):
+            self.val_path = data_dict['val']
+        else:
+            self.val_path = os.path.abspath(os.path.join(os.path.dirname(self.data_path), data_dict['val']))
+
         self.classes = data_dict['names']
         self.n_classes = len(self.classes)
 
