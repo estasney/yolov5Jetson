@@ -7,8 +7,9 @@ import math
 import torch
 import torch.nn as nn
 
-from yolov5.models.common import Conv, Bottleneck, SPP, DWConv, Focus, BottleneckCSP, Concat, NMS, autoShape
-from models.common import C3, CrossConv, MixConv2d
+from yolov5.models.common import (Conv, Bottleneck, SPP, DWConv, Focus, BottleneckCSP, Concat, NMS, autoShape, C3,
+                                  CrossConv, MixConv2d)
+
 from yolov5.utils.general import check_anchor_order, make_divisible
 from yolov5.utils.torch_utils import (time_synchronized, fuse_conv_and_bn, model_info, scale_img, initialize_weights,
                                       copy_attr)
