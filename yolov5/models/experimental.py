@@ -3,7 +3,7 @@
 import torch
 import torch.nn as nn
 
-from models.common import Ensemble
+from yolov5.models.common import Ensemble
 from yolov5.models.common import Conv
 from yolov5.utils.google_utils import attempt_download
 
