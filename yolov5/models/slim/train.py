@@ -144,6 +144,7 @@ class SlimModelTrainer(SlimModel):
         os.makedirs(weights_dir, exist_ok=True)
         last_weight_fp = os.path.join(weights_dir, "last.pt")
         best_weight_fp = os.path.join(weights_dir, "best.pt")
+        checkpoint_weight_fp = os.path.join(weights_dir, "checkpoint.pt")
 
         scheduler, lf = self.load_scheduler(epochs)
 
@@ -248,26 +249,48 @@ class SlimModelTrainer(SlimModel):
 
             # Update best mAP
             fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
-            if fi > self.best_fitness:
-                self.best_fitness = fi
 
-            # Save model
-            if final_epoch:
-                with open(results_file, 'r') as f:  # create checkpoint
-                    ckpt = {
-                        'epoch':            epoch,
-                        'best_fitness':     self.best_fitness,
-                        'training_results': f.read(),
-                        'model':            ema.ema,
-                        'optimizer':        None if final_epoch else self.optimizer.state_dict()
-                        }
-
-                # Save last, best and delete
-                torch.save(ckpt, last_weight_fp)
-                if self.best_fitness == fi:
-                    torch.save(ckpt, best_weight_fp)
-                del ckpt
+            self._save_model(fi, epoch, epochs, results_file, ema, last_weight_fp, best_weight_fp, checkpoint_weight_fp)
 
         # End Training
         torch.cuda.empty_cache()
         return results
+
+    def _save_model(self, fitness_score, epoch_current, epoch_total, results_file, ema, last_weight_fp,
+                    best_weight_fp, checkpoint_weight_fp):
+        SAVE_TYPE = 1 << 0
+        CHECKPOINT_SAVE = 1 << 1
+        FITNESS_SAVE = 1 << 2  #
+        FINAL_SAVE = 1 << 3
+
+        if epoch_current % 10 == 0:
+            SAVE_TYPE = SAVE_TYPE | CHECKPOINT_SAVE
+
+        if fitness_score > self.best_fitness:
+            self.best_fitness = fitness_score
+            SAVE_TYPE = SAVE_TYPE | FITNESS_SAVE
+            logger.info("New Best Fitness : {}".format(self.best_fitness))
+
+        if epoch_current + 1 == epoch_total:
+            SAVE_TYPE = SAVE_TYPE | FINAL_SAVE
+
+        i = 3
+        save_fps = [checkpoint_weight_fp, best_weight_fp, last_weight_fp]
+        while i > 0:
+            save_flag = (SAVE_TYPE >> i) & 1
+            save_fp = save_fps.pop()
+            if save_flag:
+                with open(results_file, 'r') as f:
+                    training_results = f.read()
+
+                ckpt = {
+                    'epoch':            epoch_current,
+                    'best_fitness':     self.best_fitness,
+                    'training_results': training_results,
+                    'model':            ema.ema,
+                    'optimizer':        None if i == 3 else self.optimizer.state_dict()
+                    }
+
+                torch.save(ckpt, save_fp)
+                return
+            i -= 1
