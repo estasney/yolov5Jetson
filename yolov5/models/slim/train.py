@@ -28,7 +28,7 @@ class OptShim:
 
 class SlimModelTrainer(SlimModel):
     NBS = 64
-    BATCH_SIZE = 3
+
 
     def __init__(self, dataset: str,
                  params: Union[Dict, str] = 'scratch',
@@ -79,7 +79,7 @@ class SlimModelTrainer(SlimModel):
         self.classes = data_dict['names']
         self.n_classes = len(self.classes)
 
-    def load_model(self):
+    def load_model(self, batch_size=3):
         checkpoint = torch.load(self.weights_path, map_location=self.device)
         model = Model(checkpoint['model'].yaml, ch=3, nc=self.n_classes).to(self.device)
         state_dict = checkpoint['model'].float().state_dict()
@@ -87,7 +87,7 @@ class SlimModelTrainer(SlimModel):
         model.load_state_dict(state_dict, strict=False)
 
         # Optimizer
-        self.weight_decay = self.weight_decay * self.BATCH_SIZE * (self.accumulate / self.NBS)
+        self.weight_decay = self.weight_decay * batch_size * (self.accumulate / self.NBS)
         self.model = model
         self.start_epoch = checkpoint.get('epoch', 0) + 1
         self.load_optimizer(checkpoint)
@@ -135,7 +135,7 @@ class SlimModelTrainer(SlimModel):
         -------
         """
 
-        self.load_model()
+        self.load_model(batch_size)
         log_dir = os.path.expanduser(log_dir)
         os.makedirs(log_dir, exist_ok=True)
         results_file = os.path.join(log_dir, 'results.txt')
