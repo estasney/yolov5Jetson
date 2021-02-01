@@ -28,7 +28,7 @@ class OptShim:
 
 class SlimModelTrainer(SlimModel):
     NBS = 64
-    BATCH_SIZE = 2
+    BATCH_SIZE = 3
 
     def __init__(self, dataset: str,
                  params: Union[Dict, str] = 'scratch',
