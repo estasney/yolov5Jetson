@@ -120,7 +120,7 @@ class SlimModelTrainer(SlimModel):
         return scheduler, lf
 
     def train(self, log_dir: str, epochs: int = 300,
-              batch_size: int = 2, img_size=(640, 640)):
+              batch_size: int = 3, img_size=(640, 640)):
         """
 
         Parameters
