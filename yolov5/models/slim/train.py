@@ -15,7 +15,7 @@ import yolov5.test
 from yolov5.models.slim.base import SlimModel
 from yolov5.models.yolo import Model
 from yolov5.utils.datasets import create_dataloader
-from yolov5.utils.general import check_img_size, labels_to_class_weights, compute_loss, fitness
+from yolov5.utils.general import check_img_size, labels_to_class_weights, compute_loss, fitness, init_seeds
 from yolov5.utils.torch_utils import intersect_dicts, ModelEMA
 from yolov5 import PretrainedWeights
 
@@ -29,11 +29,10 @@ class OptShim:
 class SlimModelTrainer(SlimModel):
     NBS = 64
 
-
     def __init__(self, dataset: str,
                  params: Union[Dict, str] = 'scratch',
                  weights: str = PretrainedWeights.SMALL,
-                 device: str = 'cuda:0'):
+                 device: str = 'cuda:0', seed: int = 42):
         """
 
         Parameters
@@ -44,13 +43,14 @@ class SlimModelTrainer(SlimModel):
         weights : str, defaults to PretrainedWeights.SMALL (yolov5s.pt)
             Path to weights file. Default path is pretrained for ultralytics
         device : str, defaults to `cuda:0`
+        seed : int, random seed
 
 
         """
         super().__init__(params, weights, device)
 
         self.data_path = dataset
-
+        self.seed = seed
         self.model = None
         self.start_epoch = 0
         self.optimizer = None
@@ -134,7 +134,8 @@ class SlimModelTrainer(SlimModel):
         Returns
         -------
         """
-
+        self.accumulate = max(round(self.NBS / batch_size), 1)
+        init_seeds(self.seed)
         self.load_model(batch_size)
         log_dir = os.path.expanduser(log_dir)
         os.makedirs(log_dir, exist_ok=True)
