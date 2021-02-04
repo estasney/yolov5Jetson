@@ -1,7 +1,7 @@
 import logging
 import math
 import os
-from typing import Union, Dict
+from typing import Union, Dict, Optional
 
 import numpy as np
 import torch
@@ -31,7 +31,7 @@ class SlimModelTrainer(SlimModel):
 
     def __init__(self, dataset: str,
                  params: Union[Dict, str] = 'scratch',
-                 weights: str = PretrainedWeights.SMALL,
+                 weights: Optional[str] = PretrainedWeights.SMALL,
                  device: str = 'cuda:0', seed: int = 42):
         """
 
@@ -80,19 +80,26 @@ class SlimModelTrainer(SlimModel):
         self.n_classes = len(self.classes)
 
     def load_model(self, batch_size=3):
-        checkpoint = torch.load(self.weights_path, map_location=self.device)
-        model = Model(checkpoint['model'].yaml, ch=3, nc=self.n_classes).to(self.device)
-        state_dict = checkpoint['model'].float().state_dict()
-        state_dict = intersect_dicts(state_dict, model.state_dict(), exclude=[])  # intersect
-        model.load_state_dict(state_dict, strict=False)
 
-        # Optimizer
         self.weight_decay = self.weight_decay * batch_size * (self.accumulate / self.NBS)
-        self.model = model
-        self.start_epoch = checkpoint.get('epoch', 0) + 1
-        self.load_optimizer(checkpoint)
 
-    def load_optimizer(self, checkpoint):
+        if not self.weights_path:
+            model = Model(ch=3, nc=self.n_classes).to(self.device)
+            self.model = model
+            self.load_optimizer(None)
+            self.start_epoch = 1
+
+        else:
+            checkpoint = torch.load(self.weights_path, map_location=self.device)
+            model = Model(checkpoint['model'].yaml, ch=3, nc=self.n_classes).to(self.device)
+            state_dict = checkpoint['model'].float().state_dict()
+            state_dict = intersect_dicts(state_dict, model.state_dict(), exclude=[])  # intersect
+            model.load_state_dict(state_dict, strict=False)
+            self.model = model
+            self.load_optimizer(checkpoint)
+            self.start_epoch = checkpoint.get('epoch', 0) + 1
+
+    def load_optimizer(self, checkpoint: Optional[Dict]):
 
         pg0, pg1, pg2 = [], [], []  # optimizer parameter groups
         for k, v in self.model.named_parameters():
@@ -109,7 +116,7 @@ class SlimModelTrainer(SlimModel):
         optimizer.add_param_group({'params': pg1, 'weight_decay': self.weight_decay})
         optimizer.add_param_group({'params': pg2})
 
-        if checkpoint['optimizer'] is not None:
+        if checkpoint and checkpoint['optimizer'] is not None:
             optimizer.load_state_dict(checkpoint['optimizer'])
 
         self.optimizer = optimizer
@@ -119,7 +126,7 @@ class SlimModelTrainer(SlimModel):
         scheduler = lr_scheduler.LambdaLR(self.optimizer, lr_lambda=lf)
         return scheduler, lf
 
-    def train(self, log_dir: str, epochs: int = 300,
+    def train(self, log_dir: str, checkpoint_interval: int = 10, epochs: int = 300,
               batch_size: int = 3, img_size=(640, 640)):
         """
 
@@ -127,6 +134,8 @@ class SlimModelTrainer(SlimModel):
         ----------
         log_dir : str
             Directory to store results to
+        checkpoint_interval : int
+            Save to checkpoint every n epochs
         epochs : int
         batch_size : int
         img_size
@@ -251,20 +260,28 @@ class SlimModelTrainer(SlimModel):
             # Update best mAP
             fi = fitness(np.array(results).reshape(1, -1))  # weighted combination of [P, R, mAP@.5, mAP@.5-.95]
 
-            self._save_model(fi, epoch, epochs, results_file, ema, last_weight_fp, best_weight_fp, checkpoint_weight_fp)
+            self._save_model(fitness_score=fi,
+                             epoch_current=epoch,
+                             epoch_total=epochs,
+                             results_file=results_file,
+                             ema=ema,
+                             last_weight_fp=last_weight_fp,
+                             best_weight_fp=best_weight_fp,
+                             checkpoint_weight_fp=checkpoint_weight_fp,
+                             checkpoint_interval=checkpoint_interval)
 
         # End Training
         torch.cuda.empty_cache()
         return results
 
-    def _save_model(self, fitness_score, epoch_current, epoch_total, results_file, ema, last_weight_fp,
-                    best_weight_fp, checkpoint_weight_fp):
+    def _save_model(self, fitness_score, epoch_current, epoch_total, results_file, ema, last_weight_fp, best_weight_fp,
+                    checkpoint_weight_fp, checkpoint_interval):
         SAVE_TYPE = 1 << 0
         CHECKPOINT_SAVE = 1 << 1
         FITNESS_SAVE = 1 << 2  #
         FINAL_SAVE = 1 << 3
 
-        if epoch_current % 10 == 0:
+        if epoch_current % checkpoint_interval == 0:
             SAVE_TYPE = SAVE_TYPE | CHECKPOINT_SAVE
 
         if fitness_score > self.best_fitness:

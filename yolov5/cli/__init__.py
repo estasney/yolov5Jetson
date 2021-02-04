@@ -23,7 +23,8 @@ def cli():
 @click.option('-d', '--device', default='cuda:0')
 @click.option('-p', '--params', type=click.Choice(['scratch', 'finetune']), default='scratch')
 @click.option('-bs', '--batch-size', type=int, default=2)
-def train(dataset, log_dir, epochs, weights, device, params, batch_size):
+@click.option('-c', '--checkpoint', type=int, default=10)
+def train(dataset, log_dir, epochs, weights, device, params, batch_size, checkpoint):
     """Train a model"""
     dataset = os.path.expanduser(click.format_filename(dataset))
     log_dir = os.path.expanduser(click.format_filename(log_dir))
@@ -33,7 +34,7 @@ def train(dataset, log_dir, epochs, weights, device, params, batch_size):
     from yolov5.models.slim.train import SlimModelTrainer as Trainer
 
     model = Trainer(dataset=dataset, params=params, weights=weights, device=device)
-    model.train(log_dir=log_dir, epochs=epochs, batch_size=batch_size)
+    model.train(checkpoint_interval=checkpoint, log_dir=log_dir, epochs=epochs, batch_size=batch_size)
 
 
 @cli.command()
